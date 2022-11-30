@@ -1,0 +1,27 @@
+node{
+    
+    stage('checkout'){
+        git url: 'https://github.com/nadiyapavan/spring-boot-mongo-docker.git',branch: 'master'
+    }
+    
+    stage('build'){
+        def mavenHome = tool name: "Maven"
+        sh "${mavenHome}/bin/mvn clean package"  
+    }
+    
+    stage('create image'){
+       sh "docker build -t vunnamvijaya/springbootapp:1 ." 
+    }
+    
+    stage('deployimageintohub'){
+        withCredentials([string(credentialsId: 'docker_pwd', variable: 'docker_pwd')]) {
+        sh "docker login -u vunnamvijaya -p ${docker_pwd}"
+        }
+        sh "docker push vunnamvijaya/springbootapp:1 "
+    }
+    
+    stage('createcontainerwithdockercompose'){
+        sh 'docker-compose up -d'
+        
+    }
+}
